@@ -1,2 +1,24 @@
-.venv/
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Images
+instance/images/*
+!instance/images/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
