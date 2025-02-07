@@ -18,8 +18,8 @@
 
 - Face Remix: see yourself and your loved ones in famous paintings
 - Local Remix: see your local cityscape or natural scenery illustrated in different styles
-- Free Prompt: create your own AI images
-- Upload: upload any image
+- Freestyle: create your own AI images
+- Direct Upload: upload any image
 
 This Github repo will show you how to make a working prototype that can be controlled by your computer but will require you to bring your own API key/images for models you want to use (and set up all the hardware/software, of course). So if you prefer to skip all that, you can [buy it here](https://themirageframe.com/). Otherwise, let's get started! 
 
