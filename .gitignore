@@ -2,17 +2,26 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.Python
+*.so
 
-# Virtual Environment
+# Testing
+.pytest_cache/
+.coverage
+**/htmlcov/
+app/tests/data/
+app/tests/test_data/
+
+# Application data
+logs/
+instance/
+
+# Environment
 .env
 .venv
 env/
 venv/
 ENV/
-
-# Images
-instance/images/*
-!instance/images/.gitkeep
 
 # IDE
 .vscode/
@@ -20,5 +29,6 @@ instance/images/*
 *.swp
 *.swo
 
-# System
+# OS
 .DS_Store
+Thumbs.db
