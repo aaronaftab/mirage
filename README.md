@@ -41,11 +41,11 @@ This Github repo will show you how to make a working prototype that can be contr
 - [Inky Impressions 7.3" E-Ink Display](https://shop.pimoroni.com/products/inky-impression-7-3?variant=40512683376723)
 - SD card (32GB+ recommended) for Pi
 - Power source compatible with your Pi model
-- Enclosure (frame) materials; the prototype in the video uses this shadow box from Amazon, spacers made from cardboard, mounting tape, and a paper border cut out from an old picture frame
+- Enclosure (frame) materials; the prototype in the video uses [this shadow box from Amazon](https://www.amazon.com/dp/B096HCNND1), spacers made from cardboard, mounting tape, and a paper border cut out from an old picture frame
 
 ## Hardware Setup
 
-If you haven't already, install Raspberry Pi OS Lite 64-bit (or the appropriate OS for your Pi) using these instructions. Set up WiFi and SSH and make sure you enable SPI and I2C interfaces in system settings.
+If you haven't already, install Raspberry Pi OS Lite 64-bit (or the appropriate OS for your Pi) using [these instructions](https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system). Set up WiFi and SSH and make sure you enable SPI and I2C interfaces in system settings.
 
 The screen is a hat for the Pi, so you can simply plug it in. Mount the screen + Pi inside your enclosure as you desire (you can see our hacky example below), connect the power source, and SSH into your Pi.
 
