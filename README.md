@@ -1,8 +1,31 @@
-# Mirage - E-Ink Display Controller
+# Mirage - The AI Photo Frame
 
-A Flask-based web service for controlling an e-ink display on a Raspberry Pi. Features include image display, system monitoring, and hardware control.
+<div align="center">
+ <video src="https://github.com/user-attachments/assets/53c1dbe3-d2bb-4ab5-85f6-6cf322f16078" width="50%"></video>
+</div>
 
-## Features
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/0ef98b4c-3d3a-489b-9ac7-8e9cae9dafe1" width="30%" />
+  <img src="https://github.com/user-attachments/assets/1d45bc56-0f07-4998-b61e-7729b9a573b0" width="30%" />
+  <img src="https://github.com/user-attachments/assets/2690e96d-5d26-4b5f-bb35-3bb84cf49356" width="30%" />
+</p>
+
+## Overview
+
+<div align="center">
+ <img src="https://github.com/user-attachments/assets/1c93ff0c-8e0e-428f-9f81-729271be6c96" width="50%">
+</div>
+
+Mirage Frame was inspired by the above tweets (it's not quite poster size, but it's also a lot cheaper than $4000!) and created to showcase both state-of-the-art AI models and the latest e-ink display technology. The full product includes the professionally built frame/display, an iOS/Android app to control it, and integration with our web server for image generation. Modes include the following, with more to come:
+
+- Face Remix: see yourself and your loved ones in famous paintings
+- Local Remix: see your local cityscape or natural scenery illustrated in different styles
+- Free Prompt: create your own AI images
+- Upload: upload any image
+
+This Github repo will show you how to make a working prototype that can be controlled by your computer but will require you to bring your own API key/images for models you want to use (and set up all the hardware/software, of course). So if you prefer to skip all that, you can buy it here. Otherwise, let's get started! 
+
+## Prototype Features
 
 - 🖼️ E-ink display control with image upload and validation
 - 📊 System monitoring (CPU, memory, temperature, disk usage)
@@ -12,12 +35,19 @@ A Flask-based web service for controlling an e-ink display on a Raspberry Pi. Fe
 - 🔒 Optional API authentication
 - 📝 Comprehensive logging
 
-## Requirements
+## Hardware Requirements
 
-- Raspberry Pi (tested on Pi 4)
-- Compatible e-ink display (using Pimoroni Inky library)
-- Python 3.11+
-- virtualenv
+- Raspberry Pi Zero 2 W (works with any Pi version that has a 40 pin header)
+- [Inky Impressions 7.3" E-Ink Display](https://shop.pimoroni.com/products/inky-impression-7-3?variant=40512683376723)
+- SD card (32GB+ recommended) for Pi
+- Power source compatible with your Pi model
+- Enclosure (frame) materials; the prototype in the video uses this shadow box from Amazon, spacers made from cardboard, mounting tape, and a paper border cut out from an old picture frame
+
+## Hardware Setup
+
+If you haven't already, install Raspberry Pi OS Lite 64-bit (or the appropriate OS for your Pi) using these instructions. Set up WiFi and SSH and make sure you enable SPI and I2C interfaces in system settings.
+
+The screen is a hat for the Pi, so you can simply plug it in. Mount the screen + Pi inside your enclosure as you desire (you can see our hacky example below), connect the power source, and SSH into your Pi.
 
 ## Installation
 
@@ -29,8 +59,8 @@ cd mirage
 
 2. Create and activate a virtual environment:
 ```bash
-python -m venv ~/.virtualenvs/pimoroni
-source ~/.virtualenvs/pimoroni/bin/activate
+python -m venv venv
+source venv/bin/activate
 ```
 
 3. Install dependencies:
@@ -45,18 +75,6 @@ export LOG_LEVEL=INFO
 export METRICS_INTERVAL=300  # 5 minutes
 export KEEP_IMAGES=5  # Number of images to retain
 export API_TOKEN=your-secret-token  # For API authentication
-```
-
-## Running the Application
-
-1. Start the application using Gunicorn:
-```bash
-gunicorn -b 0.0.0.0:5000 wsgi:app
-```
-
-2. For development/testing:
-```bash
-PYTHONPATH=. FLASK_APP=app FLASK_ENV=development flask run
 ```
 
 ## API Endpoints
@@ -81,9 +99,15 @@ PYTHONPATH=. FLASK_APP=app FLASK_ENV=development flask run
 
 Run the test suite:
 ```bash
-source ~/.virtualenvs/pimoroni/bin/activate
+source venv/bin/activate
 PYTHONPATH=. pytest app/tests -v
 ```
+
+Your display should look like this:
+
+<div align="center">
+ <img src="https://github.com/user-attachments/assets/0e981bee-5e86-4708-9f8a-0d3523e93fac" width="50%">
+</div>
 
 ## Configuration
 
@@ -109,29 +133,12 @@ LOG_FILE = Path('logs/mirage.log')
 
 ## Systemd Service
 
-1. Create a systemd service file:
+1. Copy the service file to systemd:
 ```bash
-sudo nano /etc/systemd/system/mirage.service
+sudo cp systemd/mirage.service /etc/systemd/system/
 ```
 
-2. Add the following content:
-```ini
-[Unit]
-Description=Mirage E-Ink Display Controller
-After=network.target
-
-[Service]
-User=pi
-WorkingDirectory=/home/pi/mirage
-Environment="PATH=/home/pi/.virtualenvs/pimoroni/bin"
-ExecStart=/home/pi/.virtualenvs/pimoroni/bin/gunicorn -b 0.0.0.0:5000 wsgi:app
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-3. Enable and start the service:
+2. Enable and start the service:
 ```bash
 sudo systemctl enable mirage
 sudo systemctl start mirage
@@ -163,18 +170,6 @@ mirage/
 └── wsgi.py             # WSGI entry point
 ```
 
-### Adding New Features
-
-1. Hardware support:
-   - Add new hardware interfaces in `app/hardware/`
-   - Update `Controller` class to integrate new hardware
-   - Add corresponding metrics in `metrics.py`
-
-2. API endpoints:
-   - Add routes in `routes.py`
-   - Update tests in `tests/unit/`
-   - Document new endpoints
-
 ## Troubleshooting
 
 1. Display issues:
@@ -190,13 +185,4 @@ mirage/
    - Ensure proper file permissions for logs and uploads
    - Verify GPIO access permissions
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
-
 ## License
-
-[MIT License](LICENSE) 
