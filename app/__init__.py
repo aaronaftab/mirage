@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 import os
 import atexit
 import sys
-from flask import Flask, current_app
+from flask import Flask
 from config import Config
 
 def setup_logging(config):
@@ -62,18 +62,25 @@ def create_app(config_class=Config):
     
     with app.app_context():
         # Import components here to avoid circular imports
-        from app.display import Display
-        from app.system_monitor import SystemMonitor
+        from app.hardware.display import Display
+        from app.hardware.system import SystemHardware
+        from app.controller import Controller
+        from app.metrics import MetricsCollector
         
         # Initialize components
         app.display = Display()
-        app.system_monitor = SystemMonitor(
+        app.system = SystemHardware()
+        app.controller = Controller(
             display=app.display,
-            metrics_interval=config_class.METRICS_INTERVAL
+            system=app.system
+        )
+        app.metrics = MetricsCollector(
+            controller=app.controller,
+            interval=config_class.METRICS_INTERVAL
         )
         
         # Register cleanup
-        atexit.register(app.system_monitor.shutdown)
+        atexit.register(app.metrics.shutdown)
         
         # Register blueprints
         from app.routes import bp

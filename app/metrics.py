@@ -1,5 +1,11 @@
-from prometheus_client import Counter, Gauge, Histogram, REGISTRY
+import logging
 import time
+import threading
+from prometheus_client import Counter, Gauge, Histogram, REGISTRY
+from app.controller import Controller
+import sys
+
+logger = logging.getLogger(__name__)
 
 # Display health metrics
 DISPLAY_CONNECTED = Gauge(
@@ -71,4 +77,78 @@ IMAGE_STORAGE_BYTES = Gauge(
     'mirage_image_storage_bytes',
     'Total bytes used by stored images',
     registry=REGISTRY
-) 
+)
+
+class MetricsCollector:
+    """Collects and updates system metrics"""
+    
+    def __init__(self, controller: Controller, interval: int = 300):
+        self.controller = controller
+        self.interval = interval
+        self.stop_event = threading.Event()
+        
+        # Start collection thread
+        self.collection_thread = threading.Thread(
+            target=self._collect_metrics_periodically,
+            daemon=True,
+            name="MetricsThread"
+        )
+        self.collection_thread.start()
+        logger.info(f"Started metrics collection thread (interval: {interval}s)")
+    
+    def _collect_metrics_periodically(self):
+        """Periodically collect and update metrics"""
+        while not self.stop_event.is_set():
+            try:
+                self._update_metrics()
+            except Exception as e:
+                logger.error(f"Error collecting metrics: {e}")
+            
+            # Wait for next collection or stop
+            self.stop_event.wait(timeout=self.interval)
+    
+    def _update_metrics(self):
+        """Update all metrics"""
+        # Get current status
+        status = self.controller.get_status()
+        
+        # Update system metrics
+        system = status["system"]
+        if temp := system["temperature"]:
+            SYSTEM_TEMPERATURE.set(temp)
+        
+        if "cpu" in system:
+            SYSTEM_CPU_PERCENT.set(system["cpu"]["percent"])
+        
+        if "memory" in system:
+            SYSTEM_MEMORY_PERCENT.set(system["memory"]["percent"])
+        
+        if "disk" in system:
+            SYSTEM_DISK_PERCENT.set(system["disk"]["percent"])
+        
+        # Update storage metrics
+        storage = status["storage"]
+        IMAGE_COUNT.set(storage["image_count"])
+        IMAGE_STORAGE_BYTES.set(storage["total_size"])
+        
+        # Update display metrics
+        display = status["display"]
+        DISPLAY_CONSECUTIVE_FAILURES.inc(display["consecutive_failures"])
+        if last_update := display["last_successful_update"]:
+            DISPLAY_LAST_UPDATE_TIMESTAMP.set(last_update)
+    
+    def shutdown(self):
+        """Shutdown the metrics collector."""
+        print("Shutting down metrics collector...")
+        self.stop_event.set()
+        
+        try:
+            if self.collection_thread and self.collection_thread.is_alive():
+                self.collection_thread.join(timeout=5)
+                print("Metrics collector thread joined successfully")
+            else:
+                print("No active collection thread to join")
+        except Exception as e:
+            print(f"Error during metrics shutdown: {str(e)}", file=sys.stderr)
+        finally:
+            print("Metrics collector shutdown complete") 
