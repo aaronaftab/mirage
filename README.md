@@ -1,19 +1,17 @@
 # Mirage - The AI Photo Frame
 
 <div align="center">
- <video src="https://github.com/user-attachments/assets/53c1dbe3-d2bb-4ab5-85f6-6cf322f16078" width="50%"></video>
+ <video src="https://github.com/user-attachments/assets/53c1dbe3-d2bb-4ab5-85f6-6cf322f16078" width="100%"></video>
 </div>
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/0ef98b4c-3d3a-489b-9ac7-8e9cae9dafe1" width="30%" />
-  <img src="https://github.com/user-attachments/assets/1d45bc56-0f07-4998-b61e-7729b9a573b0" width="30%" />
-  <img src="https://github.com/user-attachments/assets/2690e96d-5d26-4b5f-bb35-3bb84cf49356" width="30%" />
-</p>
+ <img src="https://github.com/user-attachments/assets/0ef98b4c-3d3a-489b-9ac7-8e9cae9dafe1" width="100%" />
+ <img src="https://github.com/user-attachments/assets/1d45bc56-0f07-4998-b61e-7729b9a573b0" width="100%" />
+ <img src="https://github.com/user-attachments/assets/2690e96d-5d26-4b5f-bb35-3bb84cf49356" width="100%" />
 
 ## Overview
 
 <div align="center">
- <img src="https://github.com/user-attachments/assets/1c93ff0c-8e0e-428f-9f81-729271be6c96" width="50%">
+ <img src="https://github.com/user-attachments/assets/1c93ff0c-8e0e-428f-9f81-729271be6c96" width="100%">
 </div>
 
 [Mirage Frame](https://themirageframe.com/) was inspired by the above tweets (it's not quite poster size, but it's also a lot cheaper than $4000!) and created to showcase both state-of-the-art AI models and the latest e-ink display technology. The full product includes the professionally built frame/display, an iOS/Android app to control it, and integration with our web server for image generation. Modes include the following, with more to come:
@@ -106,7 +104,7 @@ PYTHONPATH=. pytest app/tests -v
 Your display should look like this:
 
 <div align="center">
- <img src="https://github.com/user-attachments/assets/0e981bee-5e86-4708-9f8a-0d3523e93fac" width="50%">
+ <img src="https://github.com/user-attachments/assets/0e981bee-5e86-4708-9f8a-0d3523e93fac" width="100%">
 </div>
 
 ## Configuration
