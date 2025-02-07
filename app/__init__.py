@@ -79,8 +79,8 @@ def create_app(config_class=Config):
             interval=config_class.METRICS_INTERVAL
         )
         
-        # Register cleanup
-        atexit.register(app.metrics.shutdown)
+        # Register cleanup for all collectors
+        atexit.register(MetricsCollector.shutdown_all)
         
         # Register blueprints
         from app.routes import bp

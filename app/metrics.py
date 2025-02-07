@@ -82,6 +82,9 @@ IMAGE_STORAGE_BYTES = Gauge(
 class MetricsCollector:
     """Collects and updates system metrics"""
     
+    # Class variable to track instances
+    _instances = set()
+    
     def __init__(self, controller: Controller, interval: int = 300):
         self.controller = controller
         self.interval = interval
@@ -95,6 +98,23 @@ class MetricsCollector:
         )
         self.collection_thread.start()
         logger.info(f"Started metrics collection thread (interval: {interval}s)")
+        
+        # Track this instance
+        MetricsCollector._instances.add(self)
+    
+    def __del__(self):
+        """Cleanup when instance is garbage collected"""
+        MetricsCollector._instances.discard(self)
+    
+    @classmethod
+    def shutdown_all(cls):
+        """Shutdown all collector instances"""
+        if cls._instances:
+            print("Shutting down all metrics collectors...")
+            for collector in list(cls._instances):
+                collector.shutdown()
+            cls._instances.clear()
+            print("All metrics collectors shutdown complete")
     
     def _collect_metrics_periodically(self):
         """Periodically collect and update metrics"""
@@ -138,17 +158,16 @@ class MetricsCollector:
             DISPLAY_LAST_UPDATE_TIMESTAMP.set(last_update)
     
     def shutdown(self):
-        """Shutdown the metrics collector."""
-        print("Shutting down metrics collector...")
-        self.stop_event.set()
-        
-        try:
-            if self.collection_thread and self.collection_thread.is_alive():
+        """Shutdown this collector instance."""
+        if self.collection_thread and self.collection_thread.is_alive():
+            self.stop_event.set()
+            try:
                 self.collection_thread.join(timeout=5)
-                print("Metrics collector thread joined successfully")
-            else:
-                print("No active collection thread to join")
-        except Exception as e:
-            print(f"Error during metrics shutdown: {str(e)}", file=sys.stderr)
-        finally:
-            print("Metrics collector shutdown complete") 
+                if not self.collection_thread.is_alive():
+                    print("Metrics collector thread joined successfully")
+                else:
+                    print("Warning: Metrics collector thread did not shut down cleanly")
+            except Exception as e:
+                print(f"Error during metrics shutdown: {str(e)}", file=sys.stderr)
+            finally:
+                MetricsCollector._instances.discard(self) 
