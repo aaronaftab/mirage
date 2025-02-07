@@ -2,7 +2,6 @@ import pytest
 from pathlib import Path
 import tempfile
 import shutil
-from PIL import Image
 import io
 from flask import Flask
 from .. import create_app
@@ -13,8 +12,8 @@ class TestConfig(Config):
     # Use temporary directories for testing
     UPLOAD_FOLDER = Path(tempfile.mkdtemp()) / 'test_images'
     LOG_FILE = Path(tempfile.mkdtemp()) / 'test.log'
-    # Smaller limits for testing
-    MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB
+    # Test limits
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB max file size
     KEEP_IMAGES = 3
     METRICS_INTERVAL = 10
 
@@ -38,13 +37,18 @@ def runner(app):
     return app.test_cli_runner()
 
 @pytest.fixture
-def test_image():
-    """Create a small test image for basic testing."""
-    img = Image.new('RGB', (100, 100), color='red')
-    img_io = io.BytesIO()
-    img.save(img_io, 'PNG')
-    img_io.seek(0)
-    return img_io
+def test_data_dir():
+    """Path to test data directory"""
+    return Path(__file__).parent / 'test_data'
+
+@pytest.fixture
+def test_image(test_data_dir):
+    """Load a valid test image for the e-ink display"""
+    image_path = test_data_dir / 'valid.jpg'
+    if not image_path.exists():
+        pytest.skip("Test requires valid.jpg (480x800) in test_data directory")
+    with open(image_path, 'rb') as f:
+        return io.BytesIO(f.read())
 
 @pytest.fixture
 def corrupt_image():
@@ -53,6 +57,10 @@ def corrupt_image():
     return io.BytesIO(data)
 
 @pytest.fixture
-def data_dir():
-    """Path to the test data directory."""
-    return Path(__file__).parent / 'data' 
+def large_image(test_data_dir):
+    """Load a test image that exceeds MAX_CONTENT_LENGTH"""
+    image_path = test_data_dir / 'large.jpg'
+    if not image_path.exists():
+        pytest.skip("Test requires large.jpg (>5MB) in test_data directory")
+    with open(image_path, 'rb') as f:
+        return io.BytesIO(f.read()) 

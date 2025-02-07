@@ -10,12 +10,14 @@ class Config:
     
     # File upload settings
     UPLOAD_FOLDER = Path(__file__).parent / 'instance' / 'images'
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB max file size
     KEEP_IMAGES = int(os.environ.get('KEEP_IMAGES', '5'))
     
     # Display settings
     SUPPORTED_FORMATS = ['.png', '.jpg', '.jpeg']
     METRICS_INTERVAL = int(os.environ.get('METRICS_INTERVAL', '300'))  # 5 minutes
+    DISPLAY_STATUS_TIMEOUT = int(os.environ.get('DISPLAY_STATUS_TIMEOUT', '30'))  # 30 seconds
+    DISPLAY_UPDATE_TIMEOUT = int(os.environ.get('DISPLAY_UPDATE_TIMEOUT', '120'))  # 2 minutes
     
     # Logging settings
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
@@ -59,6 +61,13 @@ class Config:
             
         if cls.LOG_BACKUP_COUNT < 1:
             errors.append("LOG_BACKUP_COUNT must be >= 1")
+        
+        # Validate display timeouts
+        if cls.DISPLAY_STATUS_TIMEOUT < 5:
+            errors.append("DISPLAY_STATUS_TIMEOUT must be >= 5 seconds")
+        
+        if cls.DISPLAY_UPDATE_TIMEOUT < 30:
+            errors.append("DISPLAY_UPDATE_TIMEOUT must be >= 30 seconds")
         
         # Validate log level
         valid_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']

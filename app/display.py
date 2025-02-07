@@ -1,6 +1,7 @@
 from pathlib import Path
 import logging
 import time
+import threading
 from PIL import Image
 from inky.auto import auto
 from config import Config
@@ -13,10 +14,15 @@ from app.metrics import (
 logger = logging.getLogger(__name__)
 
 class Display:
+    # E-ink operations can be slow, especially for large images
+    STATUS_TIMEOUT = 30  # 30 seconds for status check
+    UPDATE_TIMEOUT = 120  # 2 minutes for display update
+    
     def __init__(self):
         logger.info("Initializing display")
         self._consecutive_failures = 0
         self._last_successful_update = None
+        self._lock = threading.Lock()  # Prevent concurrent hardware access
         
         try:
             self.inky = auto(verbose=True)
@@ -32,6 +38,18 @@ class Display:
         Get display status including hardware info and health.
         Tests connection by attempting to read display properties.
         """
+        if not self._lock.acquire(timeout=Config.DISPLAY_STATUS_TIMEOUT):
+            logger.error(f"Timeout ({Config.DISPLAY_STATUS_TIMEOUT}s) waiting for display lock during status check")
+            return {
+                "resolution": None,
+                "colour": None,
+                "supported_formats": Config.SUPPORTED_FORMATS,
+                "connected": False,
+                "consecutive_failures": self._consecutive_failures,
+                "last_successful_update": self._last_successful_update,
+                "last_error": "Display busy/locked"
+            }
+            
         try:
             # Test connection by reading resolution (requires device communication)
             _ = self.inky.resolution
@@ -43,6 +61,8 @@ class Display:
             is_connected = False
             DISPLAY_CONNECTED.set(0)
             last_error = str(e)
+        finally:
+            self._lock.release()
         
         return {
             # Hardware info (constant)
@@ -60,6 +80,14 @@ class Display:
     def update(self, image_path: Path) -> bool:
         """Update display with new image"""
         start_time = time.time()
+        
+        if not self._lock.acquire(timeout=Config.DISPLAY_UPDATE_TIMEOUT):
+            logger.error(f"Timeout ({Config.DISPLAY_UPDATE_TIMEOUT}s) waiting for display lock during update")
+            DISPLAY_UPDATES_TOTAL.labels(status="failure").inc()
+            self._consecutive_failures += 1
+            DISPLAY_CONSECUTIVE_FAILURES.inc()
+            return False
+            
         try:
             if image_path.suffix.lower() not in Config.SUPPORTED_FORMATS:
                 logger.error(f"Unsupported format {image_path.suffix}. Supported formats: {Config.SUPPORTED_FORMATS}")
@@ -69,10 +97,21 @@ class Display:
                 return False
             
             logger.info(f"Updating display with image: {image_path}")
-            with Image.open(image_path) as image:
-                resized = image.resize(self.inky.resolution)
-                self.inky.set_image(resized)
-                self.inky.show()
+            
+            # Break down the update into steps for better logging
+            try:
+                with Image.open(image_path) as image:
+                    logger.debug("Image opened successfully")
+                    resized = image.resize(self.inky.resolution)
+                    logger.debug("Image resized successfully")
+                    self.inky.set_image(resized)
+                    logger.debug("Image set to display buffer")
+                    logger.info(f"Starting display refresh (this may take up to {Config.DISPLAY_UPDATE_TIMEOUT}s)...")
+                    self.inky.show()
+                    logger.debug("Display refresh completed")
+            except Exception as e:
+                logger.error(f"Display hardware operation failed: {e}", exc_info=True)
+                raise
             
             duration = time.time() - start_time
             DISPLAY_UPDATE_DURATION.observe(duration)
@@ -97,3 +136,6 @@ class Display:
             
             logger.error(f"Display update failed: {e}", exc_info=True)
             return False
+            
+        finally:
+            self._lock.release()

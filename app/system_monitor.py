@@ -25,33 +25,73 @@ class SystemMonitor:
         """
         self.display = display
         self.image_dir = Config.UPLOAD_FOLDER
-        self.should_run = True
         self.metrics_interval = metrics_interval or Config.METRICS_INTERVAL
         logger.info(f"SystemMonitor initialized with {self.metrics_interval}s metrics interval")
         
+        # Use an event for cleaner thread signaling
+        self.stop_event = threading.Event()
+        
         # Start background metrics update thread
-        self.update_thread = threading.Thread(target=self._update_metrics_periodically, daemon=True)
+        self.update_thread = threading.Thread(
+            target=self._update_metrics_periodically,
+            daemon=True,
+            name="MetricsThread"
+        )
         self.update_thread.start()
         logger.info("Started background metrics update thread")
 
     def _update_metrics_periodically(self):
         """Background thread to update metrics periodically"""
-        while self.should_run:
+        while not self.stop_event.is_set():
+            start_time = time.time()
             try:
-                self.get_system_stats()  # This updates CPU, memory, disk metrics
-                self.get_storage_stats()  # This updates image storage metrics
-                # Also check display status
-                self.display.check_status()
-                time.sleep(self.metrics_interval)
+                # Collect metrics with timeouts
+                self._safe_collect_metrics()
+                
+                # Calculate sleep time to maintain consistent interval
+                elapsed = time.time() - start_time
+                sleep_time = max(0, self.metrics_interval - elapsed)
+                
+                # Use event to allow for clean shutdown
+                self.stop_event.wait(timeout=sleep_time)
+                
             except Exception as e:
                 logger.error(f"Error in metrics update thread: {e}", exc_info=True)
-                time.sleep(self.metrics_interval)  # Still wait before retry on error
+                # Still honor the interval on error
+                self.stop_event.wait(timeout=self.metrics_interval)
+
+    def _safe_collect_metrics(self):
+        """Collect metrics with timeouts to prevent hanging"""
+        try:
+            # System stats are usually fast
+            self.get_system_stats()
+        except Exception as e:
+            logger.error(f"Failed to collect system stats: {e}")
+
+        try:
+            # File operations could be slow
+            self.get_storage_stats()
+        except Exception as e:
+            logger.error(f"Failed to collect storage stats: {e}")
+
+        try:
+            # Hardware communication could hang
+            self.display.check_status()
+        except Exception as e:
+            logger.error(f"Failed to check display status: {e}")
 
     def shutdown(self):
         """Gracefully shutdown the background thread"""
         logger.info("Shutting down SystemMonitor")
-        self.should_run = False
-        self.update_thread.join(timeout=5)
+        self.stop_event.set()
+        
+        # Give thread time to cleanup
+        self.update_thread.join(timeout=10)
+        
+        if self.update_thread.is_alive():
+            logger.warning("Metrics thread did not shut down cleanly")
+        else:
+            logger.info("Metrics thread shut down successfully")
 
     def get_cpu_temperature(self) -> float:
         """Get CPU temperature using system file"""

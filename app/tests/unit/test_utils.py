@@ -9,12 +9,12 @@ def create_file_storage(file_obj, filename):
     return FileStorage(
         stream=file_obj,
         filename=filename,
-        content_type="image/png"
+        content_type="image/jpeg"
     )
 
 def test_validate_image_valid(test_image):
     """Test validation of a valid image"""
-    file = create_file_storage(test_image, "test.png")
+    file = create_file_storage(test_image, "test.jpg")
     is_valid, error = validate_image(file)
     assert is_valid
     assert error == ""
@@ -41,26 +41,26 @@ def test_validate_image_invalid_extension(test_image):
 
 def test_validate_image_empty_file():
     """Test validation with empty file"""
-    empty_file = create_file_storage(open(__file__, 'rb'), "test.png")
+    empty_file = create_file_storage(open(__file__, 'rb'), "test.jpg")
     is_valid, error = validate_image(empty_file)
     assert not is_valid
     assert "Invalid or corrupted image file" in error
 
 def test_validate_image_corrupt_file(corrupt_image):
     """Test validation with corrupt image data"""
-    file = create_file_storage(corrupt_image, "test.png")
+    file = create_file_storage(corrupt_image, "test.jpg")
     is_valid, error = validate_image(file)
     assert not is_valid
     assert "Invalid or corrupted image file" in error
 
-def test_validate_image_too_large(data_dir):
+def test_validate_image_too_large(test_data_dir):
     """Test validation with file exceeding size limit"""
-    large_file = data_dir / 'large.png'
+    large_file = test_data_dir / 'large.jpg'
     if not large_file.exists():
-        pytest.skip("Test requires large.png in the data directory")
+        pytest.skip("Test requires large.jpg in the data directory")
     
     with open(large_file, 'rb') as f:
-        file = create_file_storage(f, "large.png")
+        file = create_file_storage(f, "large.jpg")
         is_valid, error = validate_image(file)
         assert not is_valid
         assert "File too large" in error
@@ -68,16 +68,16 @@ def test_validate_image_too_large(data_dir):
 def test_save_image_success(test_image, app):
     """Test successful image save"""
     with app.app_context():
-        file = create_file_storage(test_image, "test.png")
+        file = create_file_storage(test_image, "test.jpg")
         path = save_image(file)
         assert path.exists()
-        assert path.suffix == ".png"
+        assert path.suffix == ".jpg"
         assert path.parent == Config.UPLOAD_FOLDER
 
 def test_save_image_invalid(corrupt_image, app):
     """Test save with invalid image"""
     with app.app_context():
-        file = create_file_storage(corrupt_image, "test.png")
+        file = create_file_storage(corrupt_image, "test.jpg")
         with pytest.raises(ValueError) as exc_info:
             save_image(file)
         assert "Invalid or corrupted image file" in str(exc_info.value)
@@ -88,7 +88,7 @@ def test_cleanup_old_images(app, test_image):
         # Save multiple images
         files = []
         for i in range(5):
-            file = create_file_storage(test_image, f"test_{i}.png")
+            file = create_file_storage(test_image, f"test_{i}.jpg")
             path = save_image(file)
             files.append(path)
         
