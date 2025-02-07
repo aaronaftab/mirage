@@ -16,14 +16,14 @@
  <img src="https://github.com/user-attachments/assets/1c93ff0c-8e0e-428f-9f81-729271be6c96" width="50%">
 </div>
 
-Mirage Frame was inspired by the above tweets (it's not quite poster size, but it's also a lot cheaper than $4000!) and created to showcase both state-of-the-art AI models and the latest e-ink display technology. The full product includes the professionally built frame/display, an iOS/Android app to control it, and integration with our web server for image generation. Modes include the following, with more to come:
+[Mirage Frame](https://themirageframe.com/) was inspired by the above tweets (it's not quite poster size, but it's also a lot cheaper than $4000!) and created to showcase both state-of-the-art AI models and the latest e-ink display technology. The full product includes the professionally built frame/display, an iOS/Android app to control it, and integration with our web server for image generation. Modes include the following, with more to come:
 
 - Face Remix: see yourself and your loved ones in famous paintings
 - Local Remix: see your local cityscape or natural scenery illustrated in different styles
 - Free Prompt: create your own AI images
 - Upload: upload any image
 
-This Github repo will show you how to make a working prototype that can be controlled by your computer but will require you to bring your own API key/images for models you want to use (and set up all the hardware/software, of course). So if you prefer to skip all that, you can buy it here. Otherwise, let's get started! 
+This Github repo will show you how to make a working prototype that can be controlled by your computer but will require you to bring your own API key/images for models you want to use (and set up all the hardware/software, of course). So if you prefer to skip all that, you can [buy it here](https://themirageframe.com/). Otherwise, let's get started! 
 
 ## Prototype Features
 
@@ -184,5 +184,3 @@ mirage/
 3. Permission issues:
    - Ensure proper file permissions for logs and uploads
    - Verify GPIO access permissions
-
-## License
