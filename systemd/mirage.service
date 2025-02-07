@@ -1,19 +1,12 @@
 [Unit]
-Description=Mirage E-ink Display Server
+Description=Mirage E-Ink Display Controller
 After=network.target
 
 [Service]
-User=aaronaftab
-WorkingDirectory=/home/aaronaftab/mirage
-Environment="PATH=/home/aaronaftab/.virtualenvs/pimoroni/bin"
-Environment="GUNICORN_CMD_ARGS=--timeout 120"
-ExecStart=/home/aaronaftab/.virtualenvs/pimoroni/bin/gunicorn --workers 1 --bind 0.0.0.0:5000 wsgi:app
-PIDFile=/run/mirage/mirage.pid
-RuntimeDirectory=mirage
-ExecStop=/bin/kill -s TERM $MAINPID
-KillMode=mixed
-KillSignal=SIGTERM
-TimeoutStopSec=5
+User=pi
+WorkingDirectory=/home/pi/mirage
+Environment="PATH=/home/pi/mirage/venv/bin"
+ExecStart=/home/pi/mirage/venv/bin/gunicorn -b 0.0.0.0:5000 wsgi:app
 Restart=always
 
 [Install]
